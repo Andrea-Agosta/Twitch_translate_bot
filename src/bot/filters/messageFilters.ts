@@ -1,14 +1,15 @@
+import { ignoredUsers } from '../config/ignoredUsers';
 import tmi from 'tmi.js';
 
-export const shouldIgnoreMessage = (
-  message: string,
+export function shouldIgnoreMessage(
   tags: tmi.ChatUserstate,
-  botUsername: string
-): boolean => {
+  message: string
+): boolean {
 
-  if (!tags.username) return true;
+  const username = tags.username?.toLowerCase();
+  if (!username) return true;
 
-  if (tags.username === botUsername) return true;
+  if (ignoredUsers.includes(username)) return true;
 
   if (message.startsWith('!')) return true;
 
