@@ -2,6 +2,8 @@ import tmi from 'tmi.js';
 import { isEnglish } from '../utils/languageDetector';
 import { translateText } from '../services/ollamaService';
 import { shouldIgnoreMessage } from './filters/messageFilters';
+import { getLanguageInfo } from '../utils/getLanguageInfo';
+import { detectLanguage } from '../utils/languageDetector';
 
 export const createMessageHandler = (botUsername: string, client: tmi.Client) => {
 
@@ -14,17 +16,18 @@ export const createMessageHandler = (botUsername: string, client: tmi.Client) =>
 
     if (self) return;
 
-    if (shouldIgnoreMessage(message, tags, botUsername)) return;
+    if (shouldIgnoreMessage(tags, message)) return;
 
     if (isEnglish(message)) return;
 
     try {
 
       const translation = await translateText(message);
+      const languageInfo = getLanguageInfo(detectLanguage(message))
 
       client.say(
         channel,
-        `@${tags.username} ${translation}`
+        `ImTyping @${tags.username} said in ${languageInfo.name} ${languageInfo.flag} [${translation}]`
       );
 
     } catch (err) {
