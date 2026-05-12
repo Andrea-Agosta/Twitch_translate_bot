@@ -1,9 +1,10 @@
-import tmi from 'tmi.js';
-import { isEnglish } from '../utils/languageDetector';
-import { translateText } from '../services/ollamaService';
-import { shouldIgnoreMessage } from './filters/messageFilters';
-import { getLanguageInfo } from '../utils/getLanguageInfo';
-import { detectLanguage } from '../utils/languageDetector';
+import tmi from 'tmi.js'
+import { isEnglish } from '../utils/languageDetector'
+import { translateText } from '../services/ollamaService'
+import { shouldIgnoreMessage } from './filters/messageFilters'
+import { getLanguageInfo } from '../utils/getLanguageInfo'
+import { removeTwitchEmotes } from '../utils/removeTwitchEmotes'
+import { translatePrompt, lenguageDetectPrompt } from '../prompts/translate.prompt'
 
 export const createMessageHandler = (botUsername: string, client: tmi.Client) => {
 
@@ -14,25 +15,31 @@ export const createMessageHandler = (botUsername: string, client: tmi.Client) =>
     self: boolean
   ) => {
 
-    if (self) return;
+    if (self) return
 
-    if (shouldIgnoreMessage(tags, message)) return;
+    const cleanedMessage = removeTwitchEmotes(
+      message,
+      tags.emotes
+    )
 
-    if (isEnglish(message)) return;
+    if (shouldIgnoreMessage(tags, cleanedMessage)) return
+
+    if (isEnglish(cleanedMessage)) return
 
     try {
-
-      const translation = await translateText(message);
-      const languageInfo = getLanguageInfo(detectLanguage(message))
+      const translation = await translateText(translatePrompt(cleanedMessage))
+      const messageInfo = JSON.parse(translation)
+      const code = await translateText(lenguageDetectPrompt(cleanedMessage))
+      const info = JSON.parse(code)
+      const languageInfo = getLanguageInfo(info.languageCode)
 
       client.say(
         channel,
-        `ImTyping @${tags.username} said in ${languageInfo.name} ${languageInfo.flag} [${translation}]`
-      );
+        `ImTyping @${tags.username} said in ${languageInfo.name} ${languageInfo.flag} [${messageInfo.translation}]`
+      )
 
     } catch (err) {
-      console.error('Translation error:', err);
+      console.error('Translation error:', err)
     }
-
-  };
+  }
 }
