@@ -1,15 +1,18 @@
-import axios from 'axios';
-import { translatePrompt } from '../prompts/translate.prompt';
+import axios from 'axios'
 
-export const translateText = async (text: string): Promise<string> => {
+export const translateText = async (prompt: string): Promise<string> => {
   const response = await axios.post(
     'http://localhost:11434/api/generate',
     {
       model: 'llama3.2',
-      prompt: translatePrompt(text),
-      stream: false
+      prompt: prompt,
+      stream: false,
+      format: 'json',
+      options: {
+        temperature: 0
+      }
     }
-  );
+  )
 
-  return response.data.response.trim();
+  return response.data.response.trim()
 }

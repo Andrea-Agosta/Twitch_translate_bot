@@ -1,11 +1,13 @@
-import tmi from 'tmi.js';
-import { isEnglish } from '../utils/languageDetector';
-import { translateText } from '../services/ollamaService';
-import { shouldIgnoreMessage } from './filters/messageFilters';
-import { getLanguageInfo } from '../utils/getLanguageInfo';
-import { detectLanguage } from '../utils/languageDetector';
+import tmi from 'tmi.js'
+import { isEnglish } from '../utils/languageDetector'
+import { translateText } from '../services/ollamaService'
+import { shouldIgnoreMessage } from './filters/messageFilters'
+import { getLanguageInfo } from '../utils/getLanguageInfo'
+import { prepareMessageForTranslation } from '../utils/prepareMessageForTranslation'
+import { translatePrompt, lenguageDetectPrompt } from '../prompts/translate.prompt'
+import { restoreEmotes } from '../utils/restoreTwitchEmotes'
 
-export const createMessageHandler = (botUsername: string, client: tmi.Client) => {
+export const createMessageHandler = (_botUsername: string, client: tmi.Client) => {
 
   return async (
     channel: string,
@@ -14,25 +16,28 @@ export const createMessageHandler = (botUsername: string, client: tmi.Client) =>
     self: boolean
   ) => {
 
-    if (self) return;
+    if (self) return
 
-    if (shouldIgnoreMessage(tags, message)) return;
-
-    if (isEnglish(message)) return;
+    const { processedMessage, emoteMap } = prepareMessageForTranslation(message, tags.emotes)
+    if (shouldIgnoreMessage(tags, processedMessage)) return
+    if (isEnglish(processedMessage)) return
 
     try {
 
-      const translation = await translateText(message);
-      const languageInfo = getLanguageInfo(detectLanguage(message))
+      const translationResponse = await translateText(translatePrompt(processedMessage))
+      const messageInfo = JSON.parse(translationResponse)
+      const finalTranslation = restoreEmotes(messageInfo.translation, emoteMap)
+      const code = await translateText(lenguageDetectPrompt(processedMessage))
+      const info = JSON.parse(code)
+      const languageInfo = getLanguageInfo(info.languageCode)
 
       client.say(
         channel,
-        `ImTyping @${tags.username} said in ${languageInfo.name} ${languageInfo.flag} [${translation}]`
-      );
+        `ImTyping @${tags.username} said in ${languageInfo.name} ${languageInfo.flag} [ ${finalTranslation} ]`
+      )
 
     } catch (err) {
-      console.error('Translation error:', err);
+      console.error('Translation error:', err)
     }
-
-  };
+  }
 }

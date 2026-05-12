@@ -5,4 +5,4 @@ export const ignoredUsers = [
   'sery_bot',
   'tangiabot',
   'fossabot'
-];
+]
