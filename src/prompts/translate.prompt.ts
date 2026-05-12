@@ -30,30 +30,19 @@ MESSAGE_END
 `
 
 export const translatePrompt = (text: string): string => `
-You are a STRICT translation engine.
+You are a translation bot that preserves SPECIAL TOKENS.
+The user message contains tokens like TOKEN_0, TOKEN_1, etc. 
 
-Your ONLY task:
-Translate text from any language to English.
+RULES:
+1. Translate the message into English.
+2. NEVER remove, skip, or modify the tokens (TOKEN_0, TOKEN_1, etc.).
+3. Treat tokens as nouns and place them in the correct grammatical position in the English sentence.
+4. Output ONLY JSON.
 
-CRITICAL RULES:
+EXAMPLE:
+Input: "Ciao TOKEN_0, come va? 🍎" (where 🍎 became TOKEN_1)
+Output: {"translation": "Hello TOKEN_0, how is it going? TOKEN_1"}
 
-* DO NOT summarize
-* DO NOT interpret meaning
-* DO NOT simplify
-* DO NOT rewrite
-* DO NOT remove words
-* DO NOT change tone
-* KEEP ALL punctuation exactly as it is
-
-You must produce a word-by-word faithful english translation.
-
-Return ONLY valid JSON:
-
-{
-"translation": "literal english translation"
-}
-
-MESSAGE_START
+MESSAGE TO TRANSLATE:
 ${text}
-MESSAGE_END
 `
