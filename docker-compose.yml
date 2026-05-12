@@ -1,0 +1,33 @@
+# Twitch translate bot + Ollama (llama3.2).
+#
+# 1. Copy env: ensure a `.env` exists with TWITCH_USERNAME, TWITCH_OAUTH, TWITCH_CHANNEL.
+# 2. Start (detached): docker compose up -d --build
+# 3. First time only — pull the model into the Ollama volume (can take several minutes):
+#    docker compose exec ollama ollama pull llama3.2
+#
+# Bot talks to Ollama at http://ollama:11434 inside the compose network.
+
+services:
+  ollama:
+    image: ollama/ollama:latest
+    volumes:
+      - ollama-data:/root/.ollama
+    ports:
+      - "11434:11434"
+    restart: unless-stopped
+
+  bot:
+    build: .
+    env_file:
+      - .env
+    environment:
+      OLLAMA_URL: http://ollama:11434
+      OLLAMA_MODEL: llama3.2
+    ports:
+      - "8080:8080"
+    depends_on:
+      - ollama
+    restart: unless-stopped
+
+volumes:
+  ollama-data:
