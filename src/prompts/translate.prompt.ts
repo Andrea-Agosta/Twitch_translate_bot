@@ -26,6 +26,9 @@ Rules:
 - no explanations
 - no extra text
 - only 3-letter ISO-639-3 code
+- detect the PRIMARY language the speaker is using, not a single foreign loanword
+- Twitch chat is often English with occasional non-English names or words; if grammar and most words are English, return eng
+- mixed-language lines: classify by dominant language (word count + sentence structure)
 
 IMPORTANT:
 
