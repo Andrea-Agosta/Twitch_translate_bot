@@ -20,7 +20,7 @@ export const startBot = () => {
       username,
       password: oauth
     },
-    channels: [channel]
+    channels: [channel, "violetwitchplayer"]
   })
 
   const handler = createMessageHandler(username, client)
